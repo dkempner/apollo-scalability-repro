@@ -82,9 +82,22 @@ function Grid() {
   ));
 }
 
+/**
+ *
+ * Comment out the first two lines and uncomment the rest to see how much faster
+ * the app runs without using useQuery
+ */
 function usePeople() {
   const query = useQuery(ALL_PEOPLE);
   return query.data?.people;
+
+  // const peopleData = [
+  //   { id: 1, name: "John Smith" },
+  //   { id: 2, name: "Sara Smith" },
+  //   { id: 3, name: "Budd Deey" },
+  // ];
+
+  // return peopleData;
 }
 
 function App() {
