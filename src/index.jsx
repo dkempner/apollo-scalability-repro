@@ -22,79 +22,90 @@ const ALL_PEOPLE = gql`
   }
 `;
 
-const ADD_PERSON = gql`
-  mutation AddPerson($name: String) {
-    addPerson(name: $name) {
-      id
-      name
-    }
-  }
-`;
+function Title() {
+  const people = usePeople();
 
-function App() {
-  const [name, setName] = useState('');
-  const {
-    loading,
-    data,
-  } = useQuery(ALL_PEOPLE);
+  return <h1>{people[0].name}</h1>;
+}
 
-  const [addPerson] = useMutation(ADD_PERSON, {
-    update: (cache, { data: { addPerson: addPersonData } }) => {
-      const peopleResult = cache.readQuery({ query: ALL_PEOPLE });
+function AddToCart() {
+  const people = usePeople();
 
-      cache.writeQuery({
-        query: ALL_PEOPLE,
-        data: {
-          ...peopleResult,
-          people: [
-            ...peopleResult.people,
-            addPersonData,
-          ],
-        },
-      });
-    },
-  });
+  return <button>{people[0].name}</button>;
+}
+
+function Hidden() {
+  const people = usePeople();
+  return null;
+}
+
+function ItemCard() {
+  const people = usePeople();
 
   return (
-    <main>
-      <h1>Apollo Client Issue Reproduction</h1>
-      <p>
-        This application can be used to demonstrate an error in Apollo Client.
-      </p>
-      <div className="add-person">
-        <label htmlFor="name">Name</label>
-        <input
-          type="text"
-          name="name"
-          value={name}
-          onChange={evt => setName(evt.target.value)}
-        />
-        <button
-          onClick={() => {
-            addPerson({ variables: { name } });
-            setName('');
-          }}
-        >
-          Add person
-        </button>
-      </div>
-      <h2>Names</h2>
-      {loading ? (
-        <p>Loading…</p>
-      ) : (
-        <ul>
-          {data?.people.map(person => (
-            <li key={person.id}>{person.name}</li>
-          ))}
-        </ul>
-      )}
-    </main>
+    <div>
+      <Title />
+      {Array.from({ length: 30 }).map(() => (
+        <Hidden />
+      ))}
+      <AddToCart />
+    </div>
+  );
+}
+
+function Row() {
+  const people = usePeople();
+  return (
+    <div style={{ display: "flex" }}>
+      {people.map((person) => (
+        <>
+          <ItemCard />
+          <ItemCard />
+          <ItemCard />
+          <ItemCard />
+          <ItemCard />
+        </>
+      ))}
+    </div>
+  );
+}
+
+function Grid() {
+  const people = usePeople();
+  if (!people) return <div>Loading...</div>;
+  return people.map((person) => (
+    <>
+      <Row />
+      <Row />
+      <Row />
+    </>
+  ));
+}
+
+function usePeople() {
+  const query = useQuery(ALL_PEOPLE);
+  return query.data?.people;
+}
+
+function App() {
+  const query = useQuery(ALL_PEOPLE);
+  const [show, setShow] = useState(false);
+  const flip = () => {
+    query.refetch();
+    setShow(!show);
+  };
+
+  return (
+    <div>
+      <button onClick={flip}>Click Me</button>
+      {show && <Grid />}
+    </div>
   );
 }
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  link
+  link,
 });
 
 const container = document.getElementById("root");
